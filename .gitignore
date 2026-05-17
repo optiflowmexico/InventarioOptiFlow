@@ -1,0 +1,21 @@
+# Ignorar entornos virtuales
+venv/
+env/
+.venv/
+
+# Ignorar archivos de cache de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+
+# Ignorar logs y archivos de desarrollo
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Ignorar archivos de GitHub Desktop (si los usas)
+*.db
+*.db-journal
