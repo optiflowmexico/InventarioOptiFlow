@@ -1,44 +1,51 @@
+# app.py
 import streamlit as st
+from bot import procesar_catalogo, validar_archivo_excel
 import pandas as pd
-import numpy as np
-import tempfile
-from io import BytesIO
-from catalogo_core import analizar_y_limpiar_excel
 
-st.set_page_config(page_title="OptiFlow Catálogo", layout="wide")
-st.title("📦 Analiza y limpia tu catálogo de productos")
-st.caption("Sube un Excel y obtén un análisis básico con archivo limpio descargable.")
+st.set_page_config(layout="wide")
+st.title("🗂 Chatbot ERP – Limpieza de Catálogo de Productos")
+st.write("Sube tu archivo Excel con tu catálogo de productos y obtén un archivo limpio listo para el ERP.")
 
-uploaded_file = st.file_uploader("Sube tu archivo Excel", type=["xlsx", "xls"])
+with st.container():
+    st.markdown("### 📌 Instrucciones rápidas")
+    st.markdown(
+        """
+        - Asegúrate de que tu archivo Excel tenga al menos las columnas:
+          `SKU`, `Nombre`, `Categoria`, `Modelo`, `Precio`, `Costo1`, `Proveedor1`, `Estado`.
+        - Usa los nombres **exactos**, sin espacios ni acentos.
+        - Campos vacíos se rellenan o se marcan en amarillo en el archivo de salida.
+        """
+    )
+
+uploaded_file = st.file_uploader(
+    "Sube tu archivo Excel (.xlsx)",
+    type=["xlsx"],
+    accept_multiple_files=False,
+)
 
 if uploaded_file:
-    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp_input:
-        tmp_input.write(uploaded_file.getvalue())
-        tmp_input_path = tmp_input.name
+    st.info("Archivo subido. Validando estructura...")
 
-    with tempfile.NamedTemporaryFile(suffix="_limpio.xlsx", delete=False) as tmp_output:
-        tmp_output_path = tmp_output.name
+    # Validar archivo
+    is_valid, df = validar_archivo_excel(uploaded_file)
+    if not is_valid:
+        st.error(f"Error de validación: {df}")
+    else:
+        st.success("Estructura básica válida.")
+        st.write("Vista previa de los primeros registros:")
+        st.dataframe(df.head())
 
-    with st.spinner("Analizando y limpiando catálogo..."):
-        resumen = analizar_y_limpiar_excel(tmp_input_path, tmp_output_path)
-
-    st.subheader("Análisis detectado")
-    for line in resumen.split("\n"):
-        if line.startswith("-") or line.startswith("Análisis") == False:
-            st.text(line)
-
-    df = pd.read_excel(tmp_output_path)
-    st.dataframe(df.head(20))
-
-    with open(tmp_output_path, "rb") as f:
-        st.download_button(
-            "Descargar catálogo limpio",
-            data=f.read(),
-            file_name="catalogo_limpio.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-
-    # limpia archivos temporales al final
-    st.write("Listo. Puedes subir otro archivo o recargar la página.")
-else:
-    st.info("Sube un archivo Excel para empezar.")
+        if st.button("Procesar catálogo"):
+            with st.spinner("Limpiando catálogo..."):
+                success, output_path, df_limpio = procesar_catalogo(uploaded_file)
+                if success:
+                    st.success("✅ Catálogo limpio generado correctamente.")
+                    st.download_button(
+                        label="📥 Descargar archivo limpio (.xlsx)",
+                        data=open(output_path, "rb").read(),
+                        file_name="catalogo_limpio.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    )
+                else:
+                    st.error("No se pudo generar el archivo limpio.")

@@ -1,5 +1,0 @@
-streamlit
-pandas
-openpyxl
-numpy
-python-telegram-bot==21.7
