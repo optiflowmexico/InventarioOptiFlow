@@ -1,4 +1,5 @@
-# bot.py
+ # bot.py
+import pandas as pd
 from catalogo_core import limpiar_catalogo_excel
 import streamlit as st
 from pathlib import Path
