@@ -1,6 +1,6 @@
 # catalogo_core.py
 import pandas as pd
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 from openpyxl.styles import PatternFill
 
 # Colores de relleno
@@ -92,7 +92,7 @@ def limpiar_catalogo_excel(input_path, output_path):
 
     # 6. Abrir el archivo para marcar en amarillo las celdas vacías
     wb = Workbook()
-    wb = openpyxl.load_workbook(output_path)
+    wb = load_workbook(output_path)
     ws = wb.active
 
     # Diccionario de índice de columna por nombre
