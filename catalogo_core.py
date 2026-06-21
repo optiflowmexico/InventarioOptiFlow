@@ -105,3 +105,83 @@ def limpiar_catalogo_excel(input_path, output_path):
 
     wb.save(output_path)
     return df
+
+def analizar_catalogo(df_original):
+    """
+    Genera un resumen de hallazgos antes de limpiar el catálogo.
+    Devuelve un diccionario con los hallazgos.
+    """
+    df = df_original.copy()
+
+    # Normalizar nombres de columnas
+    df.rename(
+        columns={
+            "Categoría": "Categoria",
+            "Descripción": "Descripcion",
+        },
+        inplace=True,
+    )
+
+    # Hallazgos
+    hallazgos = {}
+
+    # Total de filas originales
+    hallazgos["filas_originales"] = len(df)
+
+    # SKUs duplicados
+    if "SKU" in df.columns:
+        total_skus = df["SKU"].count()
+        skus_unicos = df["SKU"].nunique()
+        hallazgos["skus_duplicados"] = total_skus - skus_unicos
+    else:
+        hallazgos["skus_duplicados"] = 0
+
+    # Sin precio
+    if "Precio" in df.columns:
+        hallazgos["sin_precio"] = df["Precio"].isna().sum()
+    else:
+        hallazgos["sin_precio"] = "Columna no existe"
+
+    # SKUs en blanco
+    if "SKU" in df.columns:
+        hallazgos["sin_sku"] = df["SKU"].isna().sum()
+    else:
+        hallazgos["sin_sku"] = "Columna no existe"
+
+    # Sin categoría
+    if "Categoria" in df.columns:
+        hallazgos["sin_categoria"] = df["Categoria"].isna().sum()
+    else:
+        hallazgos["sin_categoria"] = "Columna no existe"
+
+    # Sin nombre
+    if "Nombre" in df.columns:
+        hallazgos["sin_nombre"] = df["Nombre"].isna().sum()
+    else:
+        hallazgos["sin_nombre"] = "Columna no existe"
+
+    # Sin Proveedor1
+    if "Proveedor1" in df.columns:
+        hallazgos["sin_proveedor"] = df["Proveedor1"].isna().sum()
+    else:
+        hallazgos["sin_proveedor"] = "Columna no existe"
+
+    # Sin Costo1
+    if "Costo1" in df.columns:
+        hallazgos["sin_costo"] = df["Costo1"].isna().sum()
+    else:
+        hallazgos["sin_costo"] = "Columna no existe"
+
+    # Sin Modelo
+    if "Modelo" in df.columns:
+        hallazgos["sin_modelo"] = df["Modelo"].isna().sum()
+    else:
+        hallazgos["sin_modelo"] = "Columna no existe"
+
+    # Sin Estado
+    if "Estado" in df.columns:
+        hallazgos["sin_estado"] = df["Estado"].isna().sum()
+    else:
+        hallazgos["sin_estado"] = "Columna no existe"
+
+    return hallazgos
