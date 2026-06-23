@@ -1,37 +1,49 @@
- # bot.py
-import pandas as pd
-from catalogo_core import limpiar_catalogo_excel, analizar_catalogo, validar_estructura
-import streamlit as st
-from pathlib import Path
+# bot.py
+# =========================================
+# Funciones de lectura, validación y proceso
+# =========================================
 
+import pandas as pd
+import tempfile
+from catalogo_core import limpiar_catalogo_excel, validar_estructura
+
+# =========================================
+# Validación del archivo Excel
+# =========================================
 def validar_archivo_excel(uploaded_file):
-    """Valida el archivo Excel cargado por el usuario."""
+    """
+    Lee el Excel, normaliza columnas y valida estructura.
+    Devuelve (True, df) si todo está bien.
+    Devuelve (False, mensaje_error) si falla.
+    """
     try:
         df = pd.read_excel(uploaded_file)
-        from catalogo_core import validar_estructura
-        validar_estructura(df)
+        df = validar_estructura(df)
         return True, df
     except Exception as e:
         return False, str(e)
 
-
-def procesar_catalogo(uploaded_file, output_dir="output"):
+# =========================================
+# Procesamiento del catálogo
+# =========================================
+def procesar_catalogo(uploaded_file):
     """
-    Procesa el archivo Excel de entrada y genera el archivo limpio.
+    Guarda temporalmente el archivo, lo limpia y regresa el resultado.
+    Devuelve:
+    - success (bool)
+    - output_path o mensaje_error
+    - df_limpio o None
     """
-    Path(output_dir).mkdir(exist_ok=True)
-
-    input_path = Path(output_dir) / "catalogo_original.xlsx"
-    output_path = Path(output_dir) / "catalogo_limpio.xlsx"
-
-    # Guardar el archivo subido
-    with open(input_path, "wb") as f:
-        f.write(uploaded_file.getvalue())
-
     try:
-        # Ejecutar limpieza
-        df = limpiar_catalogo_excel(input_path, output_path)
-        return True, output_path, df
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp_input:
+            tmp_input.write(uploaded_file.getvalue())
+            tmp_input_path = tmp_input.name
+
+        with tempfile.NamedTemporaryFile(suffix="_limpio.xlsx", delete=False) as tmp_output:
+            tmp_output_path = tmp_output.name
+
+        df_limpio = limpiar_catalogo_excel(tmp_input_path, tmp_output_path)
+        return True, tmp_output_path, df_limpio
+
     except Exception as e:
-        st.error(f"Error al procesar el archivo: {str(e)}")
-        return False, None, None
+        return False, str(e), None
