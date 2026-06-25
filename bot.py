@@ -1,49 +1,117 @@
 # bot.py
 # =========================================
-# Funciones de lectura, validación y proceso
+# Orquestación de carga, validación,
+# procesamiento y exportación de catálogos
 # =========================================
+
+import os
+import tempfile
+from typing import Tuple
 
 import pandas as pd
-import tempfile
-from catalogo_core import limpiar_catalogo_excel, validar_estructura
+
+from catalogo_core import (
+    exportar_excel_con_estilo,
+    limpiar_catalogo_productos,
+    limpiar_materias_primas,
+)
+
 
 # =========================================
-# Validación del archivo Excel
+# Lectura de archivo
+# =========================================
+def cargar_excel(uploaded_file) -> pd.DataFrame:
+    return pd.read_excel(uploaded_file, engine="openpyxl")
+
+
+# =========================================
+# Validación de columnas
+# =========================================
+def validar_columnas(df: pd.DataFrame, columnas_obligatorias: list) -> Tuple[bool, str]:
+    mapping = {c.lower().replace(" ", "").replace("_", ""): c for c in df.columns}
+    faltantes = []
+    for col in columnas_obligatorias:
+        key = col.lower().replace(" ", "").replace("_", "")
+        if key not in mapping:
+            faltantes.append(col)
+
+    if faltantes:
+        return False, f"Faltan columnas obligatorias: {', '.join(faltantes)}"
+
+    return True, "OK"
+
+
+# =========================================
+# Validación de productos
 # =========================================
 def validar_archivo_excel(uploaded_file):
-    """
-    Lee el Excel, normaliza columnas y valida estructura.
-    Devuelve (True, df) si todo está bien.
-    Devuelve (False, mensaje_error) si falla.
-    """
     try:
-        df = pd.read_excel(uploaded_file)
-        df = validar_estructura(df)
+        df = cargar_excel(uploaded_file)
+        obligatorias = ["SKU", "Nombre", "Categoria", "Modelo", "Precio", "Costo1", "Proveedor1", "Estado"]
+        ok, msg = validar_columnas(df, obligatorias)
+        if not ok:
+            return False, msg
         return True, df
     except Exception as e:
-        return False, str(e)
+        return False, f"No se pudo leer el archivo: {e}"
+
 
 # =========================================
-# Procesamiento del catálogo
+# Validación de materias primas
+# =========================================
+def validar_archivo_materias_primas(uploaded_file):
+    try:
+        df = cargar_excel(uploaded_file)
+        obligatorias = ["Nombre", "UnidadMedida", "UnidadCompra", "Contenido", "Proveedor1", "Costo1", "Stock"]
+        ok, msg = validar_columnas(df, obligatorias)
+        if not ok:
+            return False, msg
+        return True, df
+    except Exception as e:
+        return False, f"No se pudo leer el archivo: {e}"
+
+
+# =========================================
+# Procesamiento de productos
 # =========================================
 def procesar_catalogo(uploaded_file):
-    """
-    Guarda temporalmente el archivo, lo limpia y regresa el resultado.
-    Devuelve:
-    - success (bool)
-    - output_path o mensaje_error
-    - df_limpio o None
-    """
     try:
-        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp_input:
-            tmp_input.write(uploaded_file.getvalue())
-            tmp_input_path = tmp_input.name
+        df = cargar_excel(uploaded_file)
+        df_limpio = limpiar_catalogo_productos(df)
 
-        with tempfile.NamedTemporaryFile(suffix="_limpio.xlsx", delete=False) as tmp_output:
-            tmp_output_path = tmp_output.name
+        output_dir = os.path.join(tempfile.gettempdir(), "optiflow")
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, "catalogo_limpio.xlsx")
 
-        df_limpio = limpiar_catalogo_excel(tmp_input_path, tmp_output_path)
-        return True, tmp_output_path, df_limpio
+        exportar_excel_con_estilo(
+            df_limpio,
+            output_path,
+            ["SKU", "Nombre", "Categoria", "Modelo", "Precio", "Costo1", "Proveedor1", "Estado"],
+        )
 
+        return True, output_path, df_limpio
+    except Exception as e:
+        return False, str(e), None
+
+
+# =========================================
+# Procesamiento de materias primas
+# =========================================
+def procesar_materias_primas(uploaded_file):
+    try:
+        df = cargar_excel(uploaded_file)
+        df_limpio = limpiar_materias_primas(df)
+
+        output_dir = os.path.join(tempfile.gettempdir(), "optiflow")
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, "catalogo_materias_primas_limpio.xlsx")
+
+        exportar_excel_con_estilo(
+            df_limpio,
+            output_path,
+            ["Nombre", "UnidadMedida", "UnidadCompra", "Contenido", "Proveedor1", "Costo1", "Stock"],
+        )
+
+        return True, output_path, df_limpio
     except Exception as e:
         return False, str(e), None
