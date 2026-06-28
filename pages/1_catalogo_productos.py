@@ -39,10 +39,14 @@ with st.container():
         - Usa los nombres **exactos**, sin espacios ni acentos.
         - Campos vacíos se rellenan o se marcan en amarillo en el archivo de salida.
 
-        📌 Para mayor detalle en las instrucciones, consulta el [instructivo](https://raw.githubusercontent.com/optiflowmexico/InventarioOptiFlow/main/instrucciones.md)
         """
     )
-
+    # Redirección al instructivo completo centralizado
+    st.page_link(
+        "pages/0_Manual_Instrucciones.py", 
+        label="📌 Para mayor detalle en las instrucciones, consulta el instructivo completo aquí", 
+        icon="📖"
+    )
 
 # =========================================
 # Formulario de subida de archivo

@@ -1,157 +1,84 @@
-# Instrucciones de uso - OptiFlow ERP
+# 📖 Manual de Operación - OptiFlow ERP
 
-## 1. Objetivo
-
-Esta herramienta permite limpiar y validar archivos Excel para dos catálogos:
-
-- Catálogo de productos.
-- Catálogo de materias primas.
-
-El sistema revisa columnas obligatorias, completa ciertos campos cuando es posible y genera un archivo limpio para descarga.
+Bienvenido al sistema de preparación y limpieza de catálogos para **OptiFlow ERP**. Este módulo te permite procesar y validar tus plantillas de Excel, asegurando que los datos cumplan estrictamente con las reglas de negocio antes de ser integrados al sistema central. 🚀
 
 ---
 
-## 2. Cómo usar la aplicación
-
-1. Abre la aplicación en Streamlit.
-2. Selecciona el módulo que deseas usar.
-3. Carga tu archivo Excel `.xlsx`.
-4. Da clic en **Procesar catálogo**.
-5. Revisa el análisis mostrado en pantalla.
-6. Descarga el archivo limpio generado.
+## 💻 ¿Cómo usar la aplicación?
+1. **Navegación:** Abre la aplicación web y utiliza el menú lateral izquierdo para seleccionar el módulo deseado.
+2. **Carga:** Sube tu archivo Excel en formato `.xlsx`.
+3. **Procesamiento:** Haz clic en el botón **Procesar catálogo**.
+4. **Validación:** Revisa el análisis estadístico y los gráficos de resumen generados automáticamente en pantalla.
+5. **Descarga:** Si el procesamiento es exitoso, haz clic en el botón **📥 Descargar archivo limpio (.xlsx)**.
 
 ---
 
-## 3. Reglas generales
+## 📦 1. Módulo: Catálogo de Productos
+Este componente valida la información comercial y logística de los artículos terminados destinados a la venta.
 
-- El archivo debe ser un Excel `.xlsx`.
-- Los nombres de las columnas deben coincidir con los esperados.
-- Los campos obligatorios vacíos se marcarán en amarillo.
-- El archivo limpio conservará la información original y agregará o corregirá campos según las reglas del módulo.
+### 📌 Columnas Obligatorias (Estructura Base)
+El archivo de Excel debe contar con los siguientes encabezados. El sistema es inteligente y los reconocerá aunque tengan variaciones en mayúsculas/minúsculas, espacios o guiones bajos:
+* `SKU`: Identificador único del producto (alfanumérico, sin espacios). ¡No debe haber duplicados!
+* `Nombre`: Título o descripción comercial corta del artículo.
+* `Categoria`: Agrupación lógica de mercado (ej. *Línea Blanca, Electrónica*).
+* `Modelo`: Código de fábrica o variante específica del modelo.
+* `Precio`: Precio final de venta al público (numérico).
+* `Costo1`: Costo base de adquisición del proveedor principal (numérico).
+* `Proveedor1`: Nombre completo o razón social del proveedor asignado.
+* `Estado`: Situación operativa del producto (ej. *Activo, Descontinuado*).
 
----
+### 🔍 Columnas Adicionales Soportadas
+Si tu archivo incluye las siguientes columnas, el sistema las conservará y procesará en el archivo de salida:
+`CodigoBarras`, `Descripcion`, `Preciominimo`, `Stock`, `UnidadMedida`, `UnidadEmpaque`, `Contenido`, `Leadtime1`, `Proveedor2`, `Costo2`, `Leadtime2`, `FechaUltimaVenta`.
 
-## 4. Catálogo de productos
-
-### 4.1 Columnas obligatorias
-
-El archivo debe contener, como mínimo:
-
-- `SKU`
-- `Nombre`
-- `Categoria`
-- `Modelo`
-- `Precio`
-- `Costo1`
-- `Proveedor1`
-- `Estado`
-
-### 4.2 Reglas de limpieza
-
-- Si `Nombre` está vacío, se reemplaza por `SIN NOMBRE`.
-- Si `Categoria` está vacía, se reemplaza por `SIN CATEGORIA`.
-- Si `Modelo` está vacío, se reemplaza por `SIN MODELO`.
-- Si `Estado` está vacío, se reemplaza por `ACTIVO`.
-- Los campos obligatorios vacíos se resaltan en amarillo.
-- Se genera un análisis previo con conteo de faltantes y duplicados.
+### 🛠️ Reglas de Limpieza y Automatización de Productos
+* **Corrección de Textos:** Se eliminan espacios duplicados innecesarios al inicio y al final de cada celda.
+* **Tratamiento de Vacíos Críticos ⚠️:** * Si `Nombre` está vacío, se rellenará automáticamente con el texto **"SIN NOMBRE"**.
+  * Si `Categoria` está vacía, se rellenará automáticamente con **"Sin asignar"**.
+  * Si `Modelo` o `Estado` están vacíos, se mantendrán en blanco y sus celdas se resaltarán en **Amarillo** en el Excel de salida indicando una anomalía para tu revisión.
+* **Inteligencia de Precios Vacíos (Promedios) 📊:** Si el campo `Precio` viene vacío, el sistema calculará dinámicamente el precio promedio de los demás productos que pertenezcan a su **misma categoría** para rellenar el hueco de forma automática. Si no hay más productos en esa categoría, se dejará vacío y se pintará en amarillo.
+* **Restricción de Costos:** Si el `Costo1` está vacío, no se calcula ningún promedio; se mantendrá en blanco y se marcará en amarillo.
 
 ---
 
-## 5. Catálogo de materias primas
+## 🧪 2. Módulo: Catálogo de Materias Primas
+Este componente gestiona los insumos puros, materiales de embalaje y componentes utilizados en el área de producción.
 
-### 5.1 Columnas obligatorias
+### 📌 Columnas Obligatorias (Estructura Base)
+El archivo de Excel debe contener obligatoriamente las siguientes columnas:
+* `Nombre`: Identificador único o descripción del insumo.
+* `UnidadMedida`: Unidad base de consumo interno (ej. *Kg, Litros, Piezas*).
+* `UnidadCompra`: Unidad en la que el proveedor surte el material (ej. *Caja, Tambor, Rollo*).
+* `Contenido`: Cantidad de unidades de medida por unidad de compra (ej. *20*).
+* `Proveedor1`: Nombre del distribuidor del insumo.
+* `Costo1`: Costo económico por unidad de compra (numérico).
+* `Stock`: Cantidad física actualmente disponible en el almacén (numérico).
 
-El archivo debe contener, como mínimo:
+### 🔍 Columnas Opcionales Soportadas
+* `Descripcion`: Se puede incluir como referencia informativa, pero no es obligatoria para las operaciones lógicas del sistema.
 
-- `Nombre`
-- `UnidadMedida`
-- `UnidadCompra`
-- `Contenido`
-- `Proveedor1`
-- `Costo1`
-- `Stock`
-
-### 5.2 Reglas de limpieza
-
-- `Descripcion` ya no es obligatoria.
-- Se genera un nuevo campo llamado `DescripcionCompra`.
-- `DescripcionCompra` solo se escribe cuando existe información suficiente.
-
-### 5.3 Reglas para `DescripcionCompra`
-
-La descripción se construye con esta lógica:
-
-- Se usa el valor de `UnidadCompra`.
-- Se usa el valor de `Contenido`.
-- Se usa el valor de `UnidadMedida`.
-
-Formato final esperado:
-
-`UnidadCompra con Contenido UnidadMedida`
-
-Ejemplo:
-
-- `UnidadCompra = Cubeta`
-- `Contenido = 19`
-- `UnidadMedida = Litros`
-
-Resultado:
-
-- `DescripcionCompra = Cubeta con 19 Litros`
-
-### 5.4 Reglas adicionales
-
-- Si `UnidadCompra` y `Contenido` vienen vacíos, se llenan con:
-  - `UnidadCompra = UnidadMedida`
-  - `Contenido = 1`
-  pero solo si `UnidadMedida` sí tiene valor.
-- Si `UnidadMedida` está vacía, no se construye `DescripcionCompra`.
-- Si `UnidadCompra` y `UnidadMedida` son iguales, no se construye `DescripcionCompra`.
-- Si falta cualquier dato necesario, `DescripcionCompra` se deja vacía.
-- `DescripcionCompra` no se marca en amarillo.
+### 🛠️ Reglas de Limpieza y Automatización de Materias Primas
+* **Generación de Descripción de Compra 📝:** El sistema genera de forma automática una nueva columna compuesta llamada `DescripcionCompra` siguiendo la regla:  
+  `[UnidadCompra] con [Contenido] [UnidadMedida]` *(Ejemplo: UnidadCompra "Caja", Contenido "20" y UnidadMedida "Piezas" generará de forma automática: "Caja con 20 Piezas")*.
+* **Optimización Inteligente:** Si la `UnidadCompra` coincide exactamente con la `UnidadMedida` (ej. se compra por pieza y se mide por pieza), el sistema omitirá la descripción compuesta para evitar textos redundantes como *"Piezas con 1 Piezas"*.
+* **Homologación Automática de Vacíos:** Si `UnidadCompra` y `Contenido` vienen vacíos, pero la `UnidadMedida` sí tiene valor, el motor asume por defecto la equivalencia 1:1 (`UnidadCompra = UnidadMedida` y `Contenido = 1`). Si `UnidadMedida` está vacía, no se construye la descripción compuesta.
 
 ---
 
-## 6. Resultados del análisis
+## 🚨 Consideraciones Generales y Errores Comunes
 
-La aplicación muestra un resumen con el número de filas originales y el conteo de columnas vacías o duplicadas, según el módulo seleccionado.
+### 1. Celdas en Amarillo (Anomalías) 🟨
+Al descargar el archivo procesado (`catalogo_limpio.xlsx` o `catalogo_materias_primas_limpio.xlsx`), revisa minuciosamente las celdas iluminadas en amarillo. Indican que el sistema detectó datos faltantes y aplicó reglas automáticas de contingencia para salvar el registro, por lo que requieren tu validación visual.
 
-En productos se revisa:
+### 2. Archivos Bloqueados o Abiertos 🔒
+Asegúrate de **cerrar el archivo Excel en tu computadora** antes de cargarlo a la plataforma web. Si lo tienes abierto en programas como Microsoft Excel, el sistema no podrá procesarlo y arrojará un error de *Permiso Denegado*.
 
-- `SKU`
-- `Nombre`
-- `Categoria`
-- `Modelo`
-- `Precio`
-- `Costo1`
-- `Proveedor1`
-- `Estado`
+### 3. Resultados del Análisis en Pantalla 📊
+La aplicación te mostrará un panel con:
+* **Filas originales vs Filas finales:** Para asegurar que no se perdió ningún registro.
+* **Conteo de campos vacíos o duplicados:** Evaluando columnas clave como `SKU` (en productos) o `Nombre` (en materias primas) para garantizar la integridad de tu base de datos.
 
-En materias primas se revisa:
-
-- `Nombre`
-- `UnidadMedida`
-- `UnidadCompra`
-- `Contenido`
-- `Proveedor1`
-- `Costo1`
-- `Stock`
-- `Descripcion` solo como referencia, no como campo obligatorio.
-
----
-
-## 7. Descarga del archivo limpio
-
-Al terminar el procesamiento, la aplicación genera un archivo Excel limpio listo para descargar.
-
-- Productos: `catalogo_limpio.xlsx`
-- Materias primas: `catalogo_materias_primas_limpio.xlsx`
-
----
-
-## 8. Recomendaciones
-
-- Verifica que tus columnas no tengan espacios extra.
-- Evita cambiar los nombres de columna esperados.
-- Si el archivo no se procesa, revisa primero que sea `.xlsx`.
-- Si una columna obligatoria falta, la aplicación te lo informará en pantalla.
+### 4. Guía de Solución a Mensajes de Error Comunes 🛑
+* **`Faltan columnas obligatorias: [Nombre_Columna]`**: Verifica la ortografía de tus encabezados en el Excel. No importa si están en mayúsculas o minúsculas, pero la palabra debe estar bien escrita.
+* **`Columna 'Precio' contiene solo valores no numéricos`**: Asegúrate de que en las columnas de `Precio` o `Costo1` no existan letras, signos de pesos escritos a mano (`$`) o textos como "N/A". Deben ser celdas con formato de número puro.
+* **`KeyError` / `AttributeError`**: Este error suele ocurrir si el archivo Excel sufrió un cambio estructural severo o si se interrumpió la conexión. Refresca la página con `F5` e intenta de nuevo.

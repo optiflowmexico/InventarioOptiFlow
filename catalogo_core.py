@@ -10,6 +10,7 @@ import os
 import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill, Font, Alignment
+from openpyxl.utils import get_column_letter
 
 
 # =========================================
@@ -69,11 +70,16 @@ def _apply_excel_style(output_path: str, df: pd.DataFrame, required_cols: List[s
                     col_idx = list(df.columns).index(col_name) + 1
                     ws.cell(row=row_idx, column=col_idx).fill = YELLOW_FILL
 
+    # Código corregido para el ajuste de ancho de columnas:
     for i, col in enumerate(df.columns, start=1):
         max_len = len(str(col))
-        for v in df.iloc[:, i - 1].head(200).astype(str):
-            max_len = max(max_len, len(v))
-        ws.column_dimensions[ws.cell(row=1, column=i).column_letter].width = min(max_len + 2, 45)
+    for v in df.iloc[:, i - 1].head(200):
+        # Convertimos explícitamente a string y manejamos nulos
+        val_str = str(v) if not pd.isna(v) else ""
+        max_len = max(max_len, len(val_str))
+
+    col_letter = get_column_letter(i)
+    ws.column_dimensions[col_letter].width = min(max_len + 2, 45)
 
     wb.save(output_path)
 
