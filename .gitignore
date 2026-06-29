@@ -16,6 +16,18 @@ __pycache__/
 *.swp
 *.swo
 
-# Ignorar archivos de GitHub Desktop (si los usas)
+# Ignorar archivos de GitHub Desktop (si se usaran)
 *.db
 *.db-journal
+# =========================================
+# Seguridad de OptiFlow ERP (¡CRÍTICO!)
+# =========================================
+.env
+.env.local
+
+# Archivos de configuración de VS Code
+.vscode/
+
+# Archivos temporales de Excel (Evita subir copias ocultas de Microsoft Office)
+~$*.xlsx
+~$*.xls
